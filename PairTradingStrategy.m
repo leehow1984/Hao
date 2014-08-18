@@ -27,7 +27,7 @@ classdef PairTradingStrategy
         function MACD1Result = MACD1(obj)
         % 
         % M1 strategy: 
-        % mean reverting index: rescaled index 
+        % mean reverting index: rescaled index difference
         % mean reverting indicator: MACD   
         % 
         
