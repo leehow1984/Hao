@@ -12,7 +12,9 @@ classdef PairTradingData
         XMidPrice;
         XBidPrice;
         XAskPrice;
-        XRescPrice;        
+        XRescPrice;   
+        YRetVec;
+        XRetVec;
     end
     %define object function
     methods
@@ -30,18 +32,18 @@ classdef PairTradingData
            %/ calculate mid price
            obj.XMidPrice = (obj.XAskPrice + obj.XBidPrice)/2;           
            %/ calculate Rescale y price
-           RetVec = (obj.YMidPrice(2:end,:) - obj.YMidPrice(1:end-1,:))./obj.YMidPrice(1:end-1,:);
-           obj.YRescPrice = zeros(size(RetVec,1) + 1, size(RetVec,2));
+           obj.YRetVec = (obj.YMidPrice(2:end,:) - obj.YMidPrice(1:end-1,:))./obj.YMidPrice(1:end-1,:);
+           obj.YRescPrice = zeros(size(obj.YRetVec,1) + 1, size(obj.YRetVec,2));
            obj.YRescPrice(1,:) = 1; 
-           for i = 1:size(RetVec,1)
-               obj.YRescPrice(i + 1, :) =  obj.YRescPrice(i, :) .* (RetVec(i,:)+1);
+           for i = 1:size(obj.YRetVec,1)
+               obj.YRescPrice(i + 1, :) =  obj.YRescPrice(i, :) .* (obj.YRetVec(i,:)+1);
            end
             %/ calculate Rescale X price
-           RetVec = (obj.XMidPrice(2:end,:) - obj.XMidPrice(1:end-1,:))./obj.XMidPrice(1:end-1,:);
-           obj.XRescPrice = zeros(size(RetVec,1) + 1, size(RetVec,2));
+           obj.XRetVec = (obj.XMidPrice(2:end,:) - obj.XMidPrice(1:end-1,:))./obj.XMidPrice(1:end-1,:);
+           obj.XRescPrice = zeros(size(obj.XRetVec,1) + 1, size(obj.XRetVec,2));
            obj.XRescPrice(1,:) = 1; 
-           for i = 1:size(RetVec,1)
-               obj.XRescPrice(i + 1, :) =  obj.XRescPrice(i, :) .* (RetVec(i,:)+1);
+           for i = 1:size(obj.XRetVec,1)
+               obj.XRescPrice(i + 1, :) =  obj.XRescPrice(i, :) .* (obj.XRetVec(i,:)+1);
            end           
            
         end
