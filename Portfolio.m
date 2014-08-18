@@ -1,15 +1,25 @@
 classdef Portfolio
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
+    %
+    %   Portfolio object
+    %
     
     properties
-        
-        
+        Weights;
+        PCweights;
+        RegWeights;
     end
     
+    
     methods
-        
-        
+        function obj = Portfolio(Weights,PCweights,RegWeights)
+           if isempty(Weights)
+              
+               
+               
+               
+               
+           end    
+        end
         
     end
     

@@ -30,14 +30,11 @@ classdef PairTradingStrategy
         % mean reverting index: rescaled index difference
         % mean reverting indicator: MACD   
         % ****************************************************************
-                 
                  %/ main loop
                  for i = obj.LookBack:obj.LookFwd:size(obj.Data.XRetVex,1) 
-                     
                      %/ ret from x & y
                      YRetVec = obj.Data.YRetVec(i-obj.LookBack + 1,:);
                      XRetVec = obj.Data.XRetVec(i-obj.LookBack + 1,:);
-                     
                      
                      %/ if size of X > 2 then use PCs to aviod co-linearity
                      %in the following linear regression
@@ -48,27 +45,36 @@ classdef PairTradingStrategy
                         pccomponent = XRetVec;
                      end    
                      
-                     
                      %/ linear regression on ret
                      RegSt = regstats(YRetVec,pccomponent,'linear');
-                     
                      %/ construct residual return index
                      ResIndex = zeros(size(RegSt.r,1)+1,1);
                      ResIndex(1,:) = 1;
                      for j = 1:size(RegSt.r)
                          ResIndex(j+ 1,:) = ResIndex(j,:) * (1 + RegSt.r(j,1));
                      end
-                     
                      %/ check stationarity 
-                     
-                     
+                     stationarity = adftest(ResIndex,'model','AR','lags',0);
                      %/ if stationary then trade it 
+                     if stationarity == 1
+                         %/ generating trading signal
+                         StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
+                         if StdResIndex(end,1) > 2 
+                            Signal = -1;  
+                         elseif StdResIndex(end,1) < -2
+                            Signal = 1; 
+                         else
+                            Signal = 0; 
+                         end
+                         
+                         if Signal ~= 0
+                  
+                            %/ create execution obj
+                             Executor =  Excution(Data,SignalType,LimitLevel,StopLossLevel);
+                             PNL = Executor.Execute; 
+                         end
+                     end
                      
-                     
-                     
-                     
-                     
-                                  
                  end  
                  
                  %/ result export
