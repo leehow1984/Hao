@@ -1,40 +1,38 @@
 classdef PairTradingStrategy
 
     %/ Strategy Code:
-    %/ M1 : mean reverting 1 srategy: st
+    %/ M1 : mean reverting srategy 1 (PCA Based);
     
     %% / construct pair trading strategy parameter
     properties
-        LookBack;
-        LookFwd;
         LimitLevel;
         StopLossLevel;
-        Data;
+        TrainingDataObj;
+        MarketDataObj;
     end
      
     %% / obj methods(including constructor)
     methods
         %/ constructor
-        function obj = PairTradingStrategy(DataObj,LookBack,LookFwd,LimitLevel,StopLossLevel)
-                obj.Data = DataObj;
-                obj.LookBack = LookBack; 
-                obj.LookFwd = LookFwd;
+        function obj = PairTradingStrategy(TrainingDataObj,MarketDataObj,LimitLevel,StopLossLevel)
+                obj.MarketDataObj = MarketDataObj;
+                obj.TrainingDataObj = TrainingDataObj;
                 obj.LimitLevel = LimitLevel;
                 obj.StopLossLevel = StopLossLevel;
         end
         
         %/ trading strategy **M1**
-        function M1Result = M1MACD(obj)
+        function M1Signal = M1MACD(obj)
         % ****************************************************************
         % M1 strategy: 
         % mean reverting index: rescaled index difference
         % mean reverting indicator: MACD   
         % ****************************************************************
                  %/ main loop
-                 for i = obj.LookBack:obj.LookFwd:size(obj.Data.XRetVex,1) 
+                 
                      %/ ret from x & y
-                     YRetVec = obj.Data.YRetVec(i-obj.LookBack + 1,:);
-                     XRetVec = obj.Data.XRetVec(i-obj.LookBack + 1,:);
+                     YRetVec = obj.TrainingDataObj.YRetVec;
+                     XRetVec = obj.TrainingDataObj.XRetVec;
                      
                      %/ if size of X > 2 then use PCs to aviod co-linearity
                      %in the following linear regression
@@ -59,36 +57,20 @@ classdef PairTradingStrategy
                      if stationarity == 1
                          %/ generating trading signal
                          StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
-                         if StdResIndex(end,1) > 2 
-                            Signal = -1;  
-                         elseif StdResIndex(end,1) < -2
-                            Signal = 1; 
-                         else
-                            Signal = 0; 
-                         end
                          
-                         if Signal ~= 0
-                  
-                            %/ create execution obj
-                             Executor =  Excution(Data,SignalType,LimitLevel,StopLossLevel);
-                             PNL = Executor.Execute; 
+                         if StdResIndex(end,1) > 2 
+                            M1Signal = -1;  
+                         elseif StdResIndex(end,1) < -2
+                            M1Signal = 1; 
+                         else
+                            M1Signal = 0; 
                          end
-                     end
-                     
-                 end  
-                 
-                 %/ result export
-                 M1Result = 0;
-        
+                     else
+                         M1Signal = 0; 
+                     end  
         end
         
         
         
-        
-        
-        
-  
     end
-    
 end
-
