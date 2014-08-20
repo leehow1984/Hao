@@ -6,26 +6,26 @@ classdef Execution
 
     %/ object property 
     properties
-        SignalType;
-        LimitLevel;
-        StopLossLevel;
-        Data;
+       Signal; %/ Binary Variable 1: Filled 0: Fail to fill
+       SettledPrice;
+       TransactionCost;
+       Slippage;
     end
     
     %/ object methods
     methods
+        
         %/ constructor
-        function obj = Excution(Data,SignalType,LimitLevel,StopLossLevel)
-            obj.SignalType = SignalType;
-            obj.Data = Data;
-            obj.LimitLevel = LimitLevel;
-            obj.StopLossLevel= StopLossLevel;
+        function obj = Excution(TransactionCost,Slippage)
+            obj.TransactionCost = TransactionCost;
+            obj.Slippage = Slippage;
         end
         
         
         %/ excution function
-        function [Return] = Execute(obj)
-            
+        function obj = Execute(obj, MarketData, Order)
+            Index = find(strcmp(Order.Symbol,MarketData.Symbols),'first');
+            MarketPrice = 1;
             
             
         end
