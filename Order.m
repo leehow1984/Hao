@@ -8,6 +8,7 @@ classdef Order
         Quantity;
         Direction;
         OrderPrice;
+        OrderExecution;
     end
     
     methods
@@ -19,6 +20,13 @@ classdef Order
             obj.Quantity = Quantity;
             obj.Direction = Direction;
             obj.OrderPrice = OrderPrice;
+        end
+        
+        %/ Order Execution
+        function obj = ExecuteOrder(obj,MarketData,TCostRate,Slippage)
+             %/ create execution obj 
+             obj.OrderExecution = Execution(TCostRate,Slippage);
+             obj.OrderExecution = obj.OrderExecution.Excute(MarketData, obj); 
         end
     end
     

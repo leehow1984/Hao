@@ -37,17 +37,49 @@ classdef Portfolio
             obj.Weights = obj.MTM / obj.NAV;
         end
         
-        %/ Add element to the object
+        %/ Add/Remove security to the portfolio object
         function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData)
-            obj.Symbols(end+1,1) = Symbols;
-            obj.Quantity(end+1,1) = Quantity;
-            obj.Cost(end+1,1) = Cost;
-            %/ Cash 
-            obj.Cash = obj.Cash - Quantity * Cost;
-            %/ calculate % weight and NAV
-            for i = 1:ize(obj.Symbols,1)
-                obj.MTM(i,1) =  MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),'first'),1);
+
+            
+           % update current position
+            for i = 1:size(Symbols,1)
+                if sum(Strcmp(Symbols(i,1),obj.Symbols)) > 0 %/ same security exist
+                   Index = find(Strcmp(Symbols(i,1),obj.Symbols),'first');
+                   %/ Calculating the cost of the position
+                   %/ If position net off then set cost to zero 
+                   %/ Otherwise calculate weighted average of position
+                   %/
+                   if obj.Quantity(Index,1) == - Quantity %/ close position
+                      obj.Cost(Index,1) = 0;
+                   elseif (obj.Quantity(Index,1)> 0 && Quantity > 0) || (obj.Quantity(Index,1) < 0 && Quantity < 0)  %/ add position
+                      obj.Cost(Index,1) = (obj.Cost(Index,1)*obj.Quantity(Index,1) + Quantity*Cost)/(obj.Quantity(Index,1) + Quantity); 
+                   else %/ reduce position
+                      obj.Cost(Index,1) = obj.Cost(Index,1) * (obj.Quantity(Index,1) + Quantity(i,1)); 
+                   end 
+                   obj.Quantity(Index,1) =  obj.Quantity(Index,1) + Quantity(i,1);
+                    
+                   obj.Cash = obj.Cash + Cost;
+                else %/ new security 
+                    obj.Symbols(end+1,:) = Symbols(i,1);
+                    obj.Quantity(end+1,:) = Quantity(i,1);
+                    obj.Cost(end+1,:) = Cost(i,1);
+                end
             end
+            
+           %/ Remove security with zero holdings
+              Index = obj.Quantity == 0;
+              obj.Symbols(Index,1) = [];
+              obj.Quantity(Index,1) = [];
+              obj.Cost(Index,1) = [];
+              obj.MTM(Index,1) = [];
+              obj.PNL(Index,1) = [];
+              obj.Weights(Index,1) = [];
+              
+           %/ Update current portfolio's MTM
+            for i = 1:size(obj.Symbols,1)  
+                obj.MTM(i,1) = MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),1))*obj.Quantity(i,1);
+            end
+           
             %/ NAV Calculation
             obj.NAV = sum(obj.MTM + obj.Cash);
             %/ P&L Calculation
@@ -56,24 +88,7 @@ classdef Portfolio
             obj.Weights = obj.MTM / obj.NAV;
         end
         
-        %/ Remove element to the object
-        function obj = RemoveFromPortfolio(obj,Symbols,Quantity,Cost,MarketData)
-            obj.Quantity(find(strcmp(Symbols,obj.Symbols),'first'),1) = obj.Quantity(find(strcmp(Symbols,obj.Symbols),'first'),1) - Quantity;
-            obj.Quantity(end+1,1) = Quantity; 
-            obj.Cost(end+1,1) = Cost;
-            %/ Cash
-            obj.Cash = obj.Cash - Quantity * Cost;
-            %/ calculate % weight and NAV
-            for i = 1:ize(obj.Symbols,1)
-                obj.MTM(i,1) =  MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),'first'),1);
-            end
-            %/ NAV Calculation
-            obj.NAV = sum(obj.MTM + obj.Cash);
-            %/ P&L Calculation
-            obj.PNL = obj.MTM - obj.Cost;
-            %/ Weight Calculation
-            obj.Weights = obj.MTM / obj.NAV;          
-        end
+
         
     end
     

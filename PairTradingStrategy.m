@@ -3,7 +3,8 @@ classdef PairTradingStrategy
     %/ Strategy Code:
     %/ M1 : mean reverting 1 srategy: st
     
-    %% / construct pair trading strategy parameter
+    
+    
     properties
         LookBack;
         LookFwd;
@@ -12,7 +13,7 @@ classdef PairTradingStrategy
         Data;
     end
      
-    %% / obj methods(including constructor)
+    
     methods
         %/ constructor
         function obj = PairTradingStrategy(DataObj,LookBack,LookFwd,LimitLevel,StopLossLevel)

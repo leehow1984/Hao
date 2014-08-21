@@ -9,26 +9,38 @@ classdef Execution
        Signal; %/ Binary Variable 1: Filled 0: Fail to fill
        SettledPrice;
        TransactionCost;
-       Slippage;
+       TCostRate;
     end
     
     %/ object methods
     methods
         
         %/ constructor
-        function obj = Excution(TransactionCost,Slippage)
-            obj.TransactionCost = TransactionCost;
+        function obj = Excution(TCostRate,Slippage)
+            obj.TCostRate = TCostRate;
             obj.Slippage = Slippage;
         end
         
         
-        %/ excution function
+        %/ excution function(assume order are filled successfully @ bid/ask price)
         function obj = Execute(obj, MarketData, Order)
             Index = find(strcmp(Order.Symbol,MarketData.Symbols),'first');
-            MarketPrice = 1;
+            
+            %/ calculate transaction cost
+            if OrderDirection == 1 %/ if it is a buy order
+               obj.SettledPrice = MarketData.AskPrice(Index,1);
+               obj.Signal = 1; 
+               obj.TransactionCost = (obj.SettledPrice * Order.Quantity)*obj.TCostRate; 
+            elseif OrderDirection == -1 %/ if it is a sell order
+               obj.SettledPrice = MarketData.BidPrice(Index,1);
+               obj.Signal = 1; 
+               obj.TransactionCost = (obj.SettledPrice * Order.Quantity)*obj.TCostRate;  
+            end
             
             
         end
+        
+        
     end
     
 end

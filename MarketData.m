@@ -9,6 +9,7 @@ classdef MarketData
         Symbols;
         BidPrice;
         AskPrice;
+        MidPrice;
     end
     
     methods
@@ -18,6 +19,7 @@ classdef MarketData
             obj.Symbols = Symbols;
             obj.BidPrice = BidPrice;
             obj.AskPrice = AskPrice;
+            obj.MidPrice = (obj.BidPrice + obj.AskPrice)/2;
         end
     end
     
