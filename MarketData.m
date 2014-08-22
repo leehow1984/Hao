@@ -5,7 +5,7 @@ classdef MarketData
     %   Symbols: 1 X N Cell
     
     properties
-        Date;
+        TimeStamp;
         Symbols;
         BidPrice;
         AskPrice;
@@ -14,12 +14,24 @@ classdef MarketData
     
     methods
         %/ Constructor
-        function obj = MarketData(Date,Symbols,BidPrice,AskPrice)
-            obj.Date = Date;
+        function obj = MarketData(TimeStamp,Symbols,BidPrice,AskPrice)
+            obj.TimeStamp = TimeStamp;
             obj.Symbols = Symbols;
             obj.BidPrice = BidPrice;
             obj.AskPrice = AskPrice;
             obj.MidPrice = (obj.BidPrice + obj.AskPrice)/2;
+        end
+        
+        %/ find current price given tickers
+        %/ tickers ~ N * 1
+        function PriceMatrix = FindCurrentPrice(obj, Symbols)
+            if size(Symbols,2) ~= 1 || iscell(Symbols) == 0
+               error('Symbols must be a N * 1 Cell');
+            end
+            
+            Index = find(strcmp(Symbols,obj.Symbols));
+            
+            
         end
     end
     

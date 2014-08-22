@@ -17,11 +17,13 @@ classdef PairTradingData
         YRetVec;
         XRetVec;
         DataType;
+        YSymbols; %/  1 X N cell
+        XSymbols; %/  1 X N cell
     end
     %/ define object function
     methods
         %/ object constructor
-        function obj = PairTradingData(Dates,Ybid,Yask,Xbid, Xask, DataType)
+        function obj = PairTradingData(Dates,Ybid,Yask,Xbid, Xask,YSymbols,XSymbols,DataType)
            %/ load external data 
            obj.Dates = Dates;
            obj.YBidPrice = Ybid;
@@ -29,6 +31,11 @@ classdef PairTradingData
            obj.XBidPrice = Xbid;
            obj.XAskPrice = Xask;
            obj.DataType  = DataType;
+           
+           %/ load security ticker
+           obj.YSymbols = YSymbols;
+           obj.XSymbols = XSymbols;
+           
            
            %/ calculate mid price
            obj.YMidPrice = (obj.YAskPrice + obj.YBidPrice)/2;
