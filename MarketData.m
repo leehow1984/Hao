@@ -24,14 +24,16 @@ classdef MarketData
         
         %/ find current price given tickers
         %/ tickers ~ N * 1
-        function PriceMatrix = FindCurrentPrice(obj, Symbols)
+        function [MidPrice,BidPrice,AskPrice] = FindCurrentPrice(obj, Symbols)
             if size(Symbols,2) ~= 1 || iscell(Symbols) == 0
                error('Symbols must be a N * 1 Cell');
             end
             
             Index = find(strcmp(Symbols,obj.Symbols));
-            
-            
+            BidPrice = obj.BidPrice(Index,1);
+            AskPrice = obj.AskPrice(Index,1);
+            MidPrice = obj.MidPrice(Index,1);
+        
         end
     end
     

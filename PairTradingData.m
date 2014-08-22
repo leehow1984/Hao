@@ -64,8 +64,7 @@ classdef PairTradingData
            
            
         end
-        
-        
+
     end
     
 end

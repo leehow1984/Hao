@@ -11,7 +11,8 @@ classdef Portfolio
         PNL;
         Weights;
         NAV;
-        Cash;   
+        Cash; 
+        Direction;
         %/ potential component to be added into portfolio object
         %/ RiskManager
         %/ Portfolio Controller
@@ -40,7 +41,7 @@ classdef Portfolio
         end
         
         %/ Add/Remove security to the portfolio object
-        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData)
+        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction)
 
             
            % update current position
@@ -96,6 +97,11 @@ classdef Portfolio
             obj.PNL = obj.MTM - obj.Cost;
             %/ Weight Calculation
             obj.Weights = obj.MTM / obj.NAV;
+            
+            %/ Trade Direction
+            obj.Direction = Direction;
+            
+            
         end
         
 
