@@ -23,7 +23,7 @@ classdef PairTradingStrategy
         end
         
         %/ trading strategy **M1**
-        function obj = M1MACD(obj, MarketData, CurrentPortfolio)
+        function [M1Signal, PortfolioYweight,PortfolioXWeight] = M1MACD(obj, MarketData, CurrentPortfolio)
         % ****************************************************************
         % M1 strategy: 
         % mean reverting index: rescaled index difference
@@ -39,6 +39,7 @@ classdef PairTradingStrategy
                   pccoef = princomp(XRetVec);
                   pccomponent = XRetVec * pccoef;
               else
+                  pccoef = 1;
                   pccomponent = XRetVec;
               end    
                      
@@ -52,7 +53,10 @@ classdef PairTradingStrategy
               end
               
               %/ calculate portfolio weight 
-              obj.PortfolioWeight = WeightCalculation(Symbols,pccoef, RegSt.beta(2:end,1));
+              %obj.PortfolioWeight = obj.WeightCalculation(obj.Data.XSymbols, pccoef, RegSt.beta(2:end,1));
+              
+              obj.PortfolioWeight = RegSt.beta(2:end,1) * pccoef;
+              
               %/ check stationarity 
               stationarity = adftest(ResIndex,'model','AR','lags',0);
               %/ if stationary then generate trading signal
@@ -82,17 +86,23 @@ classdef PairTradingStrategy
                  %/ 2: Sell
                  %/ 3: Do nothing
                  if StdResIndex(end,1) > 2 && CurrentPortfolio.Direction == 0
-                    obj.M1Signal = -1;  
+                    obj.Signal = -1;  
                  elseif StdResIndex(end,1) < -2 && CurrentPortfolio.Direction == 0
-                    obj.M1Signal = 1; 
+                    obj.Signal = 1; 
                  elseif StdResIndex(end,1) < 0 && CurrentPortfolio.Direction == -1   
-                    obj.M1Signal = 1;  
+                    obj.Signal = 1;  
                  elseif StdResIndex(end,1) > 0 && CurrentPortfolio.Direction == 1      
-                    obj.M1Signal = -1; 
+                    obj.Signal = -1; 
                  else
-                    obj.M1Signal = 0; 
+                    obj.Signal = 0; 
                  end
+              else    
+                 obj.Signal = 0; 
               end
+              
+              M1Signal = obj.Signal;
+              PortfolioXWeight = obj.PortfolioWeight;
+              PortfolioYweight = 1;              
         end
     end
     
@@ -100,7 +110,7 @@ classdef PairTradingStrategy
     methods (Access = private)
         %/ calculate portfolio weight give pc weight of pc factors and pc
         %/ regression weight
-        function  PortfolioWeight = WeightCalculation(Symbols,PCweights,RegWeights)
+        function  PortfolioWeight = WeightCalculation(obj, Symbols,PCweights,RegWeights)
             Weights = transpose(RegWeights * PCweights);
             PortfolioWeight = {Symbols Weights};
         end       

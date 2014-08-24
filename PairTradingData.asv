@@ -6,14 +6,14 @@ classdef PairTradingData
     %define object properties
     properties
         Dates;
-        YMidPrice; %/ 1 X M
-        YBidPrice;  %/ 1 X M
-        YAskPrice;  %/ 1 X M
-        YRescPrice;  %/ 1 X M
-        XMidPrice;  %/ 1 X M
-        XBidPrice;  %/ 1 X M
-        XAskPrice;  %/ 1 X M
-        XRescPrice;     %/ 1 X M
+        YMidPrice;
+        YBidPrice;
+        YAskPrice;
+        YRescPrice;
+        XMidPrice;
+        XBidPrice;
+        XAskPrice;
+        XRescPrice;   
         YRetVec;
         XRetVec;
         DataType;
