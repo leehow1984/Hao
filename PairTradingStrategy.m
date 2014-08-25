@@ -51,14 +51,14 @@ classdef PairTradingStrategy
               for j = 1:size(RegSt.r)
                   ResIndex(j+ 1,:) = ResIndex(j,:) * (1 + RegSt.r(j,1));
               end
+              StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
               
               %/ calculate portfolio weight 
               %obj.PortfolioWeight = obj.WeightCalculation(obj.Data.XSymbols, pccoef, RegSt.beta(2:end,1));
-              
               obj.PortfolioWeight = RegSt.beta(2:end,1) * pccoef;
               
               %/ check stationarity 
-              stationarity = adftest(ResIndex,'model','AR','lags',0);
+              stationarity = adftest(StdResIndex,'model','AR','lags',0);
               %/ if stationary then generate trading signal
               
               if stationarity == 1
@@ -73,29 +73,31 @@ classdef PairTradingStrategy
                   %/ Xret ~ 1 X N
                   Xret = (XCurrentPrice - XPreviousPrice)./XPreviousPrice;
                   %/ new portfolio index
-                  NewPortfolioIndex = Yret - Xret*cell2mat(obj.PortfolioWeight);
+                  NewPortfolioIndex = Yret - Xret*obj.PortfolioWeight;
+                  %/ add to previous ResIndex to find current resindex
+                  NewPortfolioIndex = ResIndex(end,:) + NewPortfolioIndex;
                   
-                 %/ generating trading signal
-                 StdResIndex = (NewPortfolioIndex - mean(ResIndex))/std(ResIndex);
+                  %/ generating trading signal
+                  StdNewResIndex = (NewPortfolioIndex - mean(ResIndex))/std(ResIndex);
                  
-                 %/ generate trading signal base on current position
+                  %/ generate trading signal base on current position
                  
-                 %/ buy or sell order :
-                 %/ Signal = 
-                 %/ 1: Buy 
-                 %/ 2: Sell
-                 %/ 3: Do nothing
-                 if StdResIndex(end,1) > 2 && CurrentPortfolio.Direction == 0
+                  %/ buy or sell order :
+                  %/ Signal = 
+                  %/ 1: Buy 
+                  %/ 2: Sell
+                  %/ 3: Do nothing
+                  if StdNewResIndex > 2 && CurrentPortfolio.Direction == 0
                     obj.Signal = -1;  
-                 elseif StdResIndex(end,1) < -2 && CurrentPortfolio.Direction == 0
+                  elseif StdNewResIndex < -2 && CurrentPortfolio.Direction == 0
                     obj.Signal = 1; 
-                 elseif StdResIndex(end,1) < 0 && CurrentPortfolio.Direction == -1   
+                  elseif StdNewResIndex < 0 && CurrentPortfolio.Direction == -1   
                     obj.Signal = 1;  
-                 elseif StdResIndex(end,1) > 0 && CurrentPortfolio.Direction == 1      
+                  elseif StdNewResIndex > 0 && CurrentPortfolio.Direction == 1      
                     obj.Signal = -1; 
-                 else
+                  else
                     obj.Signal = 0; 
-                 end
+                  end
               else    
                  obj.Signal = 0; 
               end
