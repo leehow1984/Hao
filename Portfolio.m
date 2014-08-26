@@ -35,7 +35,7 @@ classdef Portfolio
             %/ NAV Calculation 
             obj.NAV = obj.Cash;
             %/ P&L Calculation
-            %obj.PNL = obj.MTM - obj.Cost;
+            obj.PNL = 0;
             %/ Weight Calculation
             %obj.Weights = obj.MTM / obj.NAV;
         end
@@ -92,7 +92,11 @@ classdef Portfolio
             end
            
             %/ NAV Calculation
-            obj.NAV = sum(obj.MTM + obj.Cash);
+            if isempty(obj.MTM)
+               obj.NAV = obj.Cash;
+            else
+               obj.NAV = sum(obj.MTM + obj.Cash);
+            end    
             %/ P&L Calculation
             obj.PNL = obj.MTM - obj.Cost;
             %/ Weight Calculation
@@ -104,8 +108,26 @@ classdef Portfolio
             
         end
         
-
-        
+        %/ Calculate portfolio PNL
+        function obj = CalculatePNL(obj, MarketData)
+           %/ Update current portfolio's MTM
+            for i = 1:size(obj.Symbols,1)  
+                obj.MTM(i,1) = MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),1))*obj.Quantity(i,1);
+            end
+           
+            %/ NAV Calculation
+            if isempty(obj.MTM)
+               obj.NAV = obj.Cash;
+            else
+               obj.NAV = sum(obj.MTM + obj.Cash);
+            end    
+            %/ P&L Calculation
+            obj.PNL = obj.MTM - obj.Cost;
+            %/ Weight Calculation
+            obj.Weights = obj.MTM / obj.NAV;
+            
+        end    
+            
     end
     
 end

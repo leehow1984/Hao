@@ -41,13 +41,10 @@ for i = lookback+2:size(Data,1)
            %/ create order object(execute the order)
            PairTradingOrder = Order(Symbol,OrderType,Quantity,Direction, OrderPrice);
            %/ add position to current portfolio 
-           obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction);
-        else    
-           
-            
-            
-            
-            
+           portfolio = portfolio.AddToPortfolio(obj,Symbols,Quantity,Cost,NewMarketData,Direction);
+        else
+           %/ if no new signal then just calculate p&l 
+           portfolio = portfolio.CalculatePNL(NewMarketData);
         end
         
         
