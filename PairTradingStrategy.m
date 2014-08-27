@@ -87,9 +87,9 @@ classdef PairTradingStrategy
                   %/ 1: Buy 
                   %/ 2: Sell
                   %/ 3: Do nothing
-                  if StdNewResIndex > 2 && CurrentPortfolio.Direction == 0
+                  if StdNewResIndex > mean(ResIndex) + 2 * std(ResIndex)  && CurrentPortfolio.Direction == 0
                     obj.Signal = -1;  
-                  elseif StdNewResIndex < -2 && CurrentPortfolio.Direction == 0
+                  elseif StdNewResIndex <  mean(ResIndex) - 2 * std(ResIndex) && CurrentPortfolio.Direction == 0
                     obj.Signal = 1; 
                   elseif StdNewResIndex < 0 && CurrentPortfolio.Direction == -1   
                     obj.Signal = 1;  

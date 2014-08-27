@@ -3,16 +3,16 @@ classdef Portfolio
     %   Portfolio object
     %   Contents holding information      
     properties
-        Symbols;
+        Symbols; % 1 x n cell 
         SecurityType;
-        Quantity;
-        Cost;
-        MTM;
-        PNL;
-        Weights;
-        NAV;
-        Cash; 
-        Direction;
+        Quantity; % 1 x n matrix
+        Cost; % 1 x n matrix 
+        MTM; % 1 x n matrix
+        PNL; % 1 x n matrix
+        Weights; % 1 x n matrix
+        NAV; % 1 x 1 matrix
+        Cash;  % 1 x 1 matrix
+        Direction; % 1 x 1 matrix
         %/ potential component to be added into portfolio object
         %/ RiskManager
         %/ Portfolio Controller
@@ -42,53 +42,70 @@ classdef Portfolio
         
         %/ Add/Remove security to the portfolio object
         function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction)
-
+           %/ input check
+           if size(Symbols,1) > 1 || ~iscell(Symbols)
+              error('Symbols must be a 1 x n cell');
+           end
+           
+           if size(Quantity,1) > 1 || ~ismatrix(Quantity)
+              error('Quantity must be a 1 x n matrix');
+           end
+           
+           if size(Cost,1) > 1 || ~ismatrix(Cost)
+              error('Cost must be a 1 x n matrix');
+           end           
+           
+           
+           if size(Cost,1) > 1 || ~ismatrix(Cost)
+              error('Cost must be a 1 x n matrix');
+           end 
+           
             
-           % update current position
-            for i = 1:size(Symbols,1)
-                if size(obj.Symbols,1) ~= 0
-                    if sum(strcmp(Symbols(i,1),obj.Symbols)) > 0 %/ same security exist
-                       Index = find(strcmp(Symbols(i,1),obj.Symbols));
+           %/ update current position
+            for i = 1:size(Symbols,2)
+                if ~isempty(obj.Symbols) 
+                    if sum(strcmp(Symbols(1,i),obj.Symbols)) > 0 %/ same security exist
+                       Index = find(strcmp(Symbols(1,i),obj.Symbols));
                    %/ Calculating the cost of the position
                    %/ If position net off then set cost to zero 
                    %/ Otherwise calculate weighted average of position
                    
-                       if obj.Quantity(Index,1) == - Quantity %/ close position
-                          obj.Cost(Index,1) = 0;
-                       elseif (obj.Quantity(Index,1)> 0 && Quantity > 0) || (obj.Quantity(Index,1) < 0 && Quantity < 0)  %/ add position
-                          obj.Cost(Index,1) = obj.Cost(Index,1)+ Cost; 
+                       if obj.Quantity(1,Index) == - Quantity %/ close position
+                          obj.Cost(1,Index) = 0;
+                       elseif (obj.Quantity(1,Index)> 0 && Quantity > 0) || (obj.Quantity(1,Index) < 0 && Quantity < 0)  %/ add position
+                          obj.Cost(1,Index) = obj.Cost(1,Index)+ Cost; 
                        else %/ reduce position
-                          obj.Cost(Index,1) = obj.Cost(Index,1) + Cost; 
+                          obj.Cost(1,Index) = obj.Cost(1,Index) + Cost; 
                        end 
-                       obj.Quantity(Index,1) =  obj.Quantity(Index,1) + Quantity(i,1);
+                       obj.Quantity(1,Index) =  obj.Quantity(1,Index) + Quantity(i);
                     
                        obj.Cash = obj.Cash - Cost;
                    else % new security
-                       obj.Symbols(end+1,:) = Symbols(i,1);
-                       obj.Quantity(end+1,:) = Quantity(i,1);
-                       obj.Cost(end+1,:) = Cost(i,1);
+                       obj.Symbols(1, end+1) = Symbols(1,i);
+                       obj.Quantity(1, end+1) = Quantity(1, i);
+                       obj.Cost(1, end+1) = Cost(1,i);
                        obj.Cash = obj.Cash - Cost;
                    end
                 else %/ new security 
-                    obj.Symbols(end+1,:) = Symbols(i,1);
-                    obj.Quantity(end+1,:) = Quantity(i,1);
-                    obj.Cost(end+1,:) = Cost(i,1);
+                    obj.Symbols(1, end+1) = Symbols(1, i);
+                    obj.Quantity(1, end+1)= Quantity(1, i);
+                    obj.Cost(1, end+1) = Cost(1, i);
                     obj.Cash = obj.Cash - Cost;
                 end
             end
-            
+           
            %/ Remove security with zero holdings
               Index = find(obj.Quantity == 0);
-              obj.Symbols(Index,:) = [];
-              obj.Quantity(Index,:) = [];
-              obj.Cost(Index,:) = [];
-              obj.MTM(Index,:) = [];
-              obj.PNL(Index,:) = [];
-              obj.Weights(Index,:) = [];
+              obj.Symbols(:,Index) = [];
+              obj.Quantity(:,Index) = [];
+              obj.Cost(:,Index) = [];
+              obj.MTM(:,Index) = [];
+              obj.PNL(:,Index)  = [];
+              obj.Weights(:,Index)  = [];
               
            %/ Update current portfolio's MTM
             for i = 1:size(obj.Symbols,1)  
-                obj.MTM(i,1) = MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),1))*obj.Quantity(i,1);
+                obj.MTM(1,i) = MarketData.MidPrice(find(strcmp(obj.Symbols(1,i),MarketData.Symbols),1))*obj.Quantity(1,i);
             end
            
             %/ NAV Calculation

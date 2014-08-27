@@ -17,30 +17,30 @@ classdef Order
     methods
         
         %/ constructor
-        function obj = Order(Symbol,OrderType,Quantity,Direction, OrderPrice)
+        function obj = Order(Symbol,OrderType,Quantity,Direction, OrderPrice,MarketData)
             %/ check parameters
-            if size(Symbols,1) > 1 || ~iscell(Symbols)
+            if size(Symbol,1) > 1 || ~iscell(Symbol)
                error('Symbols needs to be a 1 x N cell ');
             end
             
-            if size(OrderType,1) > 1 || iscell(OrderType)
+            if size(OrderType,1) > 1 || ~iscell(OrderType)
                error('OrderType needs to be a 1 X N cell');
             else
-               for i = 1:size(OrderType,1) 
-                   if strcmp(OrderType(i,1), 'MarketOrder') ~= 1 && strcmp(OrderType(i,1), 'LimitOrder') ~= 1
+               for i = 1:size(OrderType,2) 
+                   if strcmp(OrderType(1,i), 'MarketOrder') ~= 1 && strcmp(OrderType(1,i), 'LimitOrder') ~= 1
                       error('OrderType can only be MarketOrder or LimitOrder');
                    end    
                end 
             end
             
-            if size(Quantity,1) > 1 || ismatrix(Quantity)
+            if size(Quantity,1) > 1 || ~ismatrix(Quantity)
                error('Quantity can only be 1 X N matrix');
             end
             
-            if size(Direction,1) > 1 || ismatrix(Direction)
+            if size(Direction,1) > 1 || ~ismatrix(Direction)
                error('Direction can only be 1 X N matrix');
             end
-             if size(OrderPrice,1) > 1 || ismatrix(OrderPrice)
+             if size(OrderPrice,1) > 1 || ~ismatrix(OrderPrice)
                error('Direction can only be 1 X N matrix');
             end           
             
@@ -52,9 +52,16 @@ classdef Order
             obj.Direction = Direction;
             obj.OrderPrice = OrderPrice;
             %/ construct execution obj
-            OrderExecution = Execution(TCostRate,Slippage);
-            %/ execute order
-            [obj.ExecuteSignal,obj.ExecuteSetteledPrice,obj.ExecuteTransactionCost] = OrderExecution.Excute(MarketData, obj); 
+            %TCostRate = 0;
+            %Slippage = 0;
+            %[obj.ExecuteSignal,obj.ExecuteSetteledPrice,obj.ExecuteTransactionCost]...
+            Executor = Execution(0,0,MarketData, obj);
+            
+            
+            obj.ExecuteSignal = Executor.Signal;
+            obj.ExecuteSetteledPrice = Executor.SettledPrice;
+            obj.ExecuteTransactionCost = Executor.TransactionCost;
+            
         end
     end
     

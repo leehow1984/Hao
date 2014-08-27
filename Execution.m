@@ -8,33 +8,32 @@ classdef Execution
     properties
        Slippage;
        TCostRate;
+       SettledPrice;
+       Signal;
+       TransactionCost;
     end
     
     %/ object methods
     methods
         
         %/ constructor
-        function obj = Excution(TCostRate,Slippage)
+        function obj = Execution(TCostRate,Slippage , MarketData, Order)
             obj.TCostRate = TCostRate;
             obj.Slippage = Slippage;
-        end
-        
-        
         %/ excution function(assume order are filled successfully @ bid/ask price)
-        function [Signal,SettledPrice,TransactionCost] = Execute(obj, MarketData, Order)
-            Index = find(strcmp(Order.Symbol,MarketData.Symbols),'first');
+            Index = cell2mat(cellfun(@(x) find(strcmp(x,MarketData.Symbols)),Order.Symbol,'UniformOutput', false));
             %/ calculate transaction cost
-            if OrderDirection == 1 %/ if it is a buy order
-               SettledPrice = MarketData.AskPrice(Index,1);
-               Signal = 1; 
-               TransactionCost = (obj.SettledPrice * Order.Quantity)*obj.TCostRate; 
-            elseif OrderDirection == -1 %/ if it is a sell order
-               SettledPrice = MarketData.BidPrice(Index,1);
-               Signal = 1; 
-               TransactionCost = (obj.SettledPrice * Order.Quantity)*obj.TCostRate;  
+            for i = 1:size(Order.Direction,2)
+               if Order.Direction(1,i) == 1 %/ if it is a buy order
+                  obj.SettledPrice(1,i) = MarketData.AskPrice(Index(1,i),1);
+                  obj.Signal(1,i) = 1; 
+                  obj.TransactionCost(1,i) = (obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate; 
+               elseif Order.Direction(1,i) == -1 %/ if it is a sell order
+                  obj.SettledPrice(1,i) = MarketData.BidPrice(Index(1,i),1);
+                  obj.Signal(1,i) = 1; 
+                  obj.TransactionCost(1,i) = (obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate;  
+               end
             end
-            
-            
         end
         
         
