@@ -10,7 +10,8 @@ classdef PairTradingStrategy
         StopLossLevel;
         Data;
         Signal;
-        PortfolioWeight;
+        PortfolioActWeight;
+        PortfolioRetWeight;
     end
      
     %/ strategy constructor and strategies
@@ -23,49 +24,65 @@ classdef PairTradingStrategy
         end
         
         %/ trading strategy **M1**
-        function [M1Signal, PortfolioYweight,PortfolioXWeight] = M1MACD(obj, MarketData, CurrentPortfolio)
+        function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
+                  = M1(obj, MarketData, CurrentPortfolio)
         % ****************************************************************
         % M1 strategy: 
-        % mean reverting index: rescaled index difference
-        % mean reverting indicator: MACD   
+        % 
         % ****************************************************************
              %/ ret from x & y
-             YRetVec = obj.Data.YRetVec;
-             XRetVec = obj.Data.XRetVec;
-                     
-              %/ if size of X > 2 then use PCs to aviod co-linearity
-              %in the following linear regression
-              if size(XRetVec,2) > 2
-                  pccoef = princomp(XRetVec);
-                  pccomponent = XRetVec * pccoef;
-              else
-                  pccoef = 1;
-                  pccomponent = XRetVec;
-              end    
-                     
-              %/ linear regression on ret
-              RegSt = regstats(YRetVec,pccomponent,'linear');
-              %/ construct residual return index
-              ResIndex = zeros(size(RegSt.r,1)+1,1);
-              ResIndex(1,:) = 1;
-              for j = 1:size(RegSt.r)
-                  ResIndex(j+ 1,:) = ResIndex(j,:) * (1 + RegSt.r(j,1));
+              %/ XCurrentPrice ~ 1 x N
+              [YCurrentPrice,~,~] = MarketData.FindCurrentPrice(obj.Data.YSymbols);
+              [XCurrentPrice,~,~] = MarketData.FindCurrentPrice(obj.Data.XSymbols);
+              
+              %/ if current portfolio does not have any position then
+              %/ calculate weight from scratch
+              if CurrentPortfolio.Direction == 0 
+                 YRetVec = obj.Data.YRetVec;
+                 XRetVec = obj.Data.XRetVec;
+                 %/ if size of X > 2 then use PCs to aviod co-linearity
+                 %in the following linear regression
+                 if size(XRetVec,2) > 1
+                    pccoef = princomp(XRetVec);
+                    pccomponent = XRetVec * pccoef;
+                 else
+                    pccoef = 1;
+                    pccomponent = XRetVec;
+                 end      
+                 %/ linear regression on ret
+                 RegSt = regstats(YRetVec,pccomponent,'linear');
+                 %/ construct residual return index
+                 ResIndex = zeros(size(RegSt.r,1)+1,1);
+                 ResIndex(1,:) = 1;
+                 for j = 1:size(RegSt.r)
+                     ResIndex(j+ 1,:) = ResIndex(j,:) * (1 + RegSt.r(j,1));
+                 end
+                 StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
+              
+                 %/ calculate portfolio weight 
+                 obj.PortfolioRetWeight = (pccoef * RegSt.beta(2:end,1));
+                 obj.PortfolioActWeight = (pccoef * RegSt.beta(2:end,1)) .* transpose(YCurrentPrice./XCurrentPrice);
+                 
+                 Mean = mean(ResIndex);
+                 Std = std(ResIndex);
+                 
+                 %/ check stationarity 
+                 stationarity = adftest(StdResIndex,'model','AR','lags',0);
+                 %/ if stationary then generate trading signal
+                 
+              else %/ if current portfolio have existing position 
+                 obj.PortfolioRetWeight = CurrentPortfolio.StrategyData.PortfolioRetWeight;
+                 obj.PortfolioActWeight = CurrentPortfolio.Weights(1,2:end);
+                 Mean = CurrentPortfolio.StrategyData.Mean;
+                 Std = CurrentPortfolio.StrategyData.Std;
+                 ResIndex = CurrentPortfolio.StrategyData.ResIndex;
+                 stationarity = 1;
               end
-              StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
               
-              %/ calculate portfolio weight 
-              %obj.PortfolioWeight = obj.WeightCalculation(obj.Data.XSymbols, pccoef, RegSt.beta(2:end,1));
-              obj.PortfolioWeight = RegSt.beta(2:end,1) * pccoef;
+
               
-              %/ check stationarity 
-              stationarity = adftest(StdResIndex,'model','AR','lags',0);
-              %/ if stationary then generate trading signal
-              
-              if stationarity == 1
+              if stationarity == 1 
                   %/Calculate current Return
-                  %/ XCurrentPrice ~ 1 x N
-                  [YCurrentPrice,~,~] = MarketData.FindCurrentPrice(obj.Data.YSymbols);
-                  [XCurrentPrice,~,~] = MarketData.FindCurrentPrice(obj.Data.XSymbols);
                   YPreviousPrice = obj.Data.YMidPrice(end,1);
                   %/ XPreviousPrice ~ 1 X N
                   XPreviousPrice = transpose(obj.Data.XMidPrice(end,:));
@@ -73,12 +90,11 @@ classdef PairTradingStrategy
                   %/ Xret ~ 1 X N
                   Xret = (XCurrentPrice - XPreviousPrice)./XPreviousPrice;
                   %/ new portfolio index
-                  NewPortfolioIndex = Yret - Xret*obj.PortfolioWeight;
+                  NewPortfolioIndex = Yret - Xret*obj.PortfolioRetWeight;
                   %/ add to previous ResIndex to find current resindex
                   NewPortfolioIndex = ResIndex(end,:) + NewPortfolioIndex;
-                  
                   %/ generating trading signal
-                  StdNewResIndex = (NewPortfolioIndex - mean(ResIndex))/std(ResIndex);
+                  StdNewResIndex = (NewPortfolioIndex - Mean)/Std;
                  
                   %/ generate trading signal base on current position
                  
@@ -102,9 +118,13 @@ classdef PairTradingStrategy
                  obj.Signal = 0; 
               end
               
+              
+              Mean = mean(ResIndex);
+              Std = std(ResIndex);
               M1Signal = obj.Signal;
-              PortfolioXWeight = obj.PortfolioWeight;
-              PortfolioYweight = 1;              
+              PortfolioXWeight = obj.PortfolioActWeight;
+              PortfolioYweight = 1;
+              PortfolioRetWeight = obj.PortfolioRetWeight;
         end
     end
     

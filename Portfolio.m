@@ -13,6 +13,7 @@ classdef Portfolio
         NAV; % 1 x 1 matrix
         Cash;  % 1 x 1 matrix
         Direction; % 1 x 1 matrix
+        StrategyData;
         %/ potential component to be added into portfolio object
         %/ RiskManager
         %/ Portfolio Controller
@@ -41,7 +42,7 @@ classdef Portfolio
         end
         
         %/ Add/Remove security to the portfolio object
-        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction)
+        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction,StrategyData)
            %/ input check
            if size(Symbols,1) > 1 || ~iscell(Symbols)
               error('Symbols must be a 1 x n cell');
@@ -121,6 +122,9 @@ classdef Portfolio
             
             %/ Trade Direction
             obj.Direction = Direction;
+            
+            %/ Strategy Data
+            obj.StrategyData = StrategyData;
             
             
         end

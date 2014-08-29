@@ -25,14 +25,14 @@ classdef MarketData
         %/ find current price given tickers
         %/ tickers ~ N * 1
         function [MidPrice,BidPrice,AskPrice] = FindCurrentPrice(obj, Symbols)
-            if size(Symbols,2) ~= 1 || iscell(Symbols) == 0
-               error('Symbols must be a N * 1 Cell');
+            if size(Symbols,1) ~= 1 || iscell(Symbols) == 0
+               error('Symbols must be a 1 * N 1 Cell');
             end
             
-            Index = find(strcmp(Symbols,obj.Symbols));
-            BidPrice = obj.BidPrice(Index,1);
-            AskPrice = obj.AskPrice(Index,1);
-            MidPrice = obj.MidPrice(Index,1);
+            Index = cell2mat(cellfun(@(x) find(strcmp(x,obj.Symbols)),Symbols,'UniformOutput', false));
+            BidPrice = transpose(obj.BidPrice(Index,1));
+            AskPrice = transpose(obj.AskPrice(Index,1));
+            MidPrice = transpose(obj.MidPrice(Index,1));
         
         end
     end

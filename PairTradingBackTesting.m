@@ -22,9 +22,12 @@ for i = lookback+2:size(Data,1)
         %/ construct strategy obj
         Strategy = PairTradingStrategy(TrainingData,0,3);
         %/ use strategy to generate trading signal 
-        [Signal,YWeight,XWeight] = Strategy.M1MACD(NewMarketData, portfolio);
+        [Signal,YWeight,XWeight,PortfolioRetWeight, Mean, Std,ResIndex] = Strategy.M1(NewMarketData, portfolio);
     %4. Check Signal & place orders accordingly
-
+        M1Data.PortfolioRetWeight = PortfolioRetWeight;
+        M1Data.Mean = Mean;
+        M1Data.Std = Std;
+        M1Data.ResIndex = ResIndex;
          if Signal ~= 0
            % build paramters 
            Symbol =  transpose([Data(1,3); transpose(Data(1,4))]);
@@ -38,19 +41,17 @@ for i = lookback+2:size(Data,1)
            [YCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,3));
            [XCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,4));
            OrderPrice = [YCurrentPrice XCurrentPrice];
+           
 
            %/ create order object(execute the order)
            PairTradingOrder = Order(Symbol,OrderType,Quantity,Direction, OrderPrice, NewMarketData);
            %/ add position to current portfolio 
            portfolio = portfolio.AddToPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
-                       PairTradingOrder.ExecuteSetteledPrice,NewMarketData,PairTradingOrder.Direction(1,1));
+                       PairTradingOrder.ExecuteSetteledPrice,NewMarketData,PairTradingOrder.Direction(1,1),M1Data);
         else
            %/ if no new signal then just calculate p&l 
            portfolio = portfolio.CalculatePNL(NewMarketData);
         end
-        
-        
-        
         
         
         
