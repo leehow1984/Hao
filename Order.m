@@ -15,7 +15,6 @@ classdef Order
     end
     
     methods
-        
         %/ constructor
         function obj = Order(Symbol,OrderType,Quantity,Direction, OrderPrice,MarketData)
             %/ check parameters

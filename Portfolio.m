@@ -1,3 +1,4 @@
+
 classdef Portfolio
     %
     %   Portfolio object
@@ -74,27 +75,26 @@ classdef Portfolio
                        if obj.Quantity(1,Index) == - Quantity %/ close position
                           obj.Cost(1,Index) = 0;
                        elseif (obj.Quantity(1,Index)> 0 && Quantity > 0) || (obj.Quantity(1,Index) < 0 && Quantity < 0)  %/ add position
-                          obj.Cost(1,Index) = obj.Cost(1,Index)+ Cost; 
+                          obj.Cost(1,Index) = obj.Cost(1,Index)+ sum(Cost); 
                        else %/ reduce position
-                          obj.Cost(1,Index) = obj.Cost(1,Index) + Cost; 
+                          obj.Cost(1,Index) = obj.Cost(1,Index) + sum(Cost); 
                        end 
                        obj.Quantity(1,Index) =  obj.Quantity(1,Index) + Quantity(i);
                     
-                       obj.Cash = obj.Cash - Cost;
+                       obj.Cash = obj.Cash - Cost(1, i);
                    else % new security
                        obj.Symbols(1, end+1) = Symbols(1,i);
                        obj.Quantity(1, end+1) = Quantity(1, i);
                        obj.Cost(1, end+1) = Cost(1,i);
-                       obj.Cash = obj.Cash - Cost;
+                       obj.Cash = obj.Cash - Cost(1, i);
                    end
                 else %/ new security 
                     obj.Symbols(1, end+1) = Symbols(1, i);
                     obj.Quantity(1, end+1)= Quantity(1, i);
                     obj.Cost(1, end+1) = Cost(1, i);
-                    obj.Cash = obj.Cash - Cost;
+                    obj.Cash = obj.Cash - Cost(1, i);
                 end
             end
-           
            %/ Remove security with zero holdings
               Index = find(obj.Quantity == 0);
               obj.Symbols(:,Index) = [];
@@ -103,17 +103,16 @@ classdef Portfolio
               obj.MTM(:,Index) = [];
               obj.PNL(:,Index)  = [];
               obj.Weights(:,Index)  = [];
-              
            %/ Update current portfolio's MTM
-            for i = 1:size(obj.Symbols,1)  
-                obj.MTM(1,i) = MarketData.MidPrice(find(strcmp(obj.Symbols(1,i),MarketData.Symbols),1))*obj.Quantity(1,i);
+            for i = 1:size(obj.Symbols,2)  
+                obj.MTM(1,i) = MarketData.MidPrice(find(strcmp(obj.Symbols(1,i),MarketData.Symbols),1))*obj.Quantity(1,i)*Direction(1,i);
             end
            
             %/ NAV Calculation
             if isempty(obj.MTM)
                obj.NAV = obj.Cash;
             else
-               obj.NAV = sum(obj.MTM + obj.Cash);
+               obj.NAV = sum(obj.MTM) + obj.Cash;
             end    
             %/ P&L Calculation
             obj.PNL = obj.MTM - obj.Cost;
@@ -132,15 +131,15 @@ classdef Portfolio
         %/ Calculate portfolio PNL
         function obj = CalculatePNL(obj, MarketData)
            %/ Update current portfolio's MTM
-            for i = 1:size(obj.Symbols,1)  
-                obj.MTM(i,1) = MarketData.MidPrice(find(strcmp(obj.Symbols(i,1),MarketData.Symbols),1))*obj.Quantity(i,1);
+            for i = 1:size(obj.Symbols,2)  
+                obj.MTM(1,i) = MarketData.MidPrice(find(strcmp(obj.Symbols(1,i),MarketData.Symbols),1))*obj.Quantity(1,i)*obj.Direction(1,i);
             end
            
             %/ NAV Calculation
             if isempty(obj.MTM)
                obj.NAV = obj.Cash;
             else
-               obj.NAV = sum(obj.MTM + obj.Cash);
+               obj.NAV = sum(obj.MTM) + obj.Cash;
             end    
             %/ P&L Calculation
             obj.PNL = obj.MTM - obj.Cost;
