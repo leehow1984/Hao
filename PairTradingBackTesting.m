@@ -2,7 +2,7 @@
 %% Trading Set Up: trading parameter and trading portfolio  
 lookback = 250;
 lookfwd = 20;
-portfolio = Portfolio(100);
+portfolio = Portfolio(10);
 portfolio.Direction = 0;
 
 %% main testing loop
@@ -48,8 +48,17 @@ for i = lookback+2:size(Data,1)
            %/ add position to current portfolio 
            
            Cost = PairTradingOrder.ExecuteSetteledPrice .*  PairTradingOrder.Direction .* PairTradingOrder.Quantity;
-           portfolio = portfolio.AddToPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
+           
+           
+           if PairTradingOrder.Direction(1,1) == 1
+              portfolio = portfolio.AddToPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
                        Cost,NewMarketData,PairTradingOrder.Direction,M1Data);
+           elseif  PairTradingOrder.Direction(1,1) == - 1
+              portfolio = portfolio.RemoveFromPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
+                       Cost,NewMarketData,PairTradingOrder.Direction,M1Data);              
+           end    
+               
+                   
         else
            %/ if no new signal then just calculate p&l 
            portfolio = portfolio.CalculatePNL(NewMarketData);
@@ -58,3 +67,4 @@ for i = lookback+2:size(Data,1)
         
         
 end
+x = 1;

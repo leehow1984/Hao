@@ -77,6 +77,8 @@ classdef PairTradingStrategy
                  Std = CurrentPortfolio.StrategyData.Std;
                  ResIndex = CurrentPortfolio.StrategyData.ResIndex;
                  stationarity = 1;
+                 %/ generate trading signal base on current position
+                 obj.PortfolioActWeight  = CurrentPortfolio.Quantity(1,2:end);
               end
               
 
@@ -94,10 +96,7 @@ classdef PairTradingStrategy
                   %/ add to previous ResIndex to find current resindex
                   NewPortfolioIndex = ResIndex(end,:) + NewPortfolioIndex;
                   %/ generating trading signal
-                  StdNewResIndex = (NewPortfolioIndex - Mean)/Std;
-                 
-                  %/ generate trading signal base on current position
-                 
+                  StdNewResIndex = (NewPortfolioIndex - Mean)/Std;         
                   %/ buy or sell order :
                   %/ Signal = 
                   %/ 1: Buy 
