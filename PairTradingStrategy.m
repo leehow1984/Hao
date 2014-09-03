@@ -50,7 +50,7 @@ classdef PairTradingStrategy
                     pccomponent = XRetVec;
                  end      
                  %/ linear regression on ret
-                 RegSt = regstats(YRetVec,pccomponent,'linear');
+                 RegSt = regstats(YRetVec,pccomponent,'linear',{'beta','r'});
                  %/ construct residual return index
                  ResIndex = zeros(size(RegSt.r,1)+1,1);
                  ResIndex(1,:) = 1;
@@ -72,13 +72,11 @@ classdef PairTradingStrategy
                  
               else %/ if current portfolio have existing position 
                  obj.PortfolioRetWeight = CurrentPortfolio.StrategyData.PortfolioRetWeight;
-                 obj.PortfolioActWeight = CurrentPortfolio.Weights(1,2:end);
+                 obj.PortfolioActWeight = abs(CurrentPortfolio.Quantity(1,2:end));
                  Mean = CurrentPortfolio.StrategyData.Mean;
                  Std = CurrentPortfolio.StrategyData.Std;
                  ResIndex = CurrentPortfolio.StrategyData.ResIndex;
                  stationarity = 1;
-                 %/ generate trading signal base on current position
-                 obj.PortfolioActWeight  = CurrentPortfolio.Quantity(1,2:end);
               end
               
 
@@ -121,8 +119,17 @@ classdef PairTradingStrategy
               Mean = mean(ResIndex);
               Std = std(ResIndex);
               M1Signal = obj.Signal;
-              PortfolioXWeight = obj.PortfolioActWeight;
-              PortfolioYweight = 1;
+              
+              if obj.Signal == 1
+                 PortfolioXWeight = -obj.PortfolioActWeight;
+                 PortfolioYweight = 1;
+              elseif obj.Signal == -1   
+                 PortfolioXWeight = obj.PortfolioActWeight;
+                 PortfolioYweight = -1;  
+              else
+                 PortfolioXWeight = 0;
+                 PortfolioYweight = 0;                    
+              end
               PortfolioRetWeight = obj.PortfolioRetWeight;
         end
     end
