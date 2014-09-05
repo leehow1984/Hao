@@ -5,7 +5,7 @@ lookfwd = 20;
 portfolio = Portfolio(100);
 portfolio.Direction = 0;
 tradinglog = cell(0,1);
-
+Strategy = PairTradingStrategy(0,3,20);
 
 
 %% main testing loop
@@ -22,8 +22,8 @@ for i = lookback+2:size(Data,1)
                                    Data(1,5:6),... %x symbol
                                    'Historical');
     %3. Feed data into Trading Strategy to generate trading signal 
-        %/ construct strategy obj
-        Strategy = PairTradingStrategy(TrainingData,0,3);
+        %/ feed new market data into strategy obj
+        Strategy = Strategy.UpdateMarketData(TrainingData);
         %/ use strategy to generate trading signal 
         [Signal,YWeight,XWeight,PortfolioRetWeight, Mean, Std,ResIndex] = Strategy.M1(NewMarketData, portfolio);
     %4. Check Signal & place orders accordingly
@@ -59,6 +59,7 @@ for i = lookback+2:size(Data,1)
                   tradinglog(end + 1,1) = (strcat(datestr(NewMarketData.TimeStamp),' Sell {', num2str(Quantity(1,j)),'} {',Symbol(1,j), '} @ ', num2str(OrderPrice(1,j))));
                end 
            end
+           
            %/ calculate cost
            Cost = PairTradingOrder.ExecuteSetteledPrice .* PairTradingOrder.Quantity;
            %/ add to portfolio
@@ -68,8 +69,6 @@ for i = lookback+2:size(Data,1)
            %/ if no new signal then just calculate p&l 
            portfolio = portfolio.CalculatePNL(NewMarketData);
         end
-        
-        
-        
+          
 end
 x = 1;

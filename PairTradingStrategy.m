@@ -12,19 +12,36 @@ classdef PairTradingStrategy
         Signal;
         PortfolioActWeight;
         PortfolioRetWeight;
+        Timer;
+        HoldingPeriod;
     end
      
     %/ strategy constructor and strategies
     methods
         %/ constructor
-        function obj = PairTradingStrategy(DataObj,LimitLevel,StopLossLevel)
-                obj.Data = DataObj;
+        function obj = PairTradingStrategy(LimitLevel,StopLossLevel,HoldingPeriod)
+                obj.HoldingPeriod = HoldingPeriod;
                 obj.LimitLevel = LimitLevel;
                 obj.StopLossLevel = StopLossLevel;
         end
         
-        %/ trading strategy **M1**
-        %/ V1
+        %/ update market data
+        function obj = UpdateMarketData(NewDataObj)
+                 obj.Data = [];
+                 obj.Data = NewDataObj;
+        end
+        
+        
+        
+        %%/ trading strategy **M1**
+        %/ V1 / Description / 
+        %/ This trading strategy is based on simple linear regression
+        %/ It regress return of Y with return of X and sum up the residual return of the regression
+        %/ If the relationship is significant then the sum of the residual
+        %/ should be stationary(e.g  if e~n(0,sigma) then sum(e) ~
+        %/ N(0,n* Sigma ^2)
+        %/ holding period: 20 days 
+        
         function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
                   = M1(obj, MarketData, CurrentPortfolio)
         % ****************************************************************
@@ -102,24 +119,31 @@ classdef PairTradingStrategy
                   %/ 1: Buy 
                   %/ 2: Sell
                   %/ 3: Do nothing
-                  
-                  if strcmp(datestr(MarketData.TimeStamp),'19-Feb-2008')
-                     xxx = 1;
-                  end
-                  
-                  if StdNewResIndex > 0  && CurrentPortfolio.Direction(1,1) == 0
-                    obj.Signal = -1;  
+                  if obj.Timmer > obj.HoldingPeriod && CurrentPortfolio.Direction(1,1) ~= 0
+                     if CurrentPortfolio.Direction(1,1) == -1 
+                        obj.Signal = 1;
+                     else
+                        obj.Signal = -1; 
+                     end 
+                     obj.Timmer = 0;
+                  elseif StdNewResIndex > 0  && CurrentPortfolio.Direction(1,1) == 0
+                    obj.Signal = -1; 
+                    obj.Timmer = 1;
                   elseif StdNewResIndex <  0  && CurrentPortfolio.Direction(1,1) == 0
                     obj.Signal = 1; 
+                    obj.Timmer = 1;
                   elseif StdNewResIndex < 0 && CurrentPortfolio.Direction(1,1) == -1   
                     obj.Signal = 1;  
+                    obj.Timmer = 0;
                   elseif StdNewResIndex > 0 && CurrentPortfolio.Direction(1,1) == 1      
-                    obj.Signal = -1; 
+                    obj.Signal = -1;
+                    obj.Timmer = 0;
                   else
                     obj.Signal = 0; 
                   end
-              else    
-                 obj.Signal = 0; 
+              else
+                 obj.Signal = 0;
+                 obj.Timmer = 0;
               end
               
               
@@ -154,14 +178,5 @@ classdef PairTradingStrategy
     
     
  
-    %/ private methods(only used within the object)
-    methods (Access = private)
-        %/ calculate portfolio weight give pc weight of pc factors and pc
-        %/ regression weight
-        function  PortfolioWeight = WeightCalculation(obj, Symbols,PCweights,RegWeights)
-            Weights = transpose(RegWeights * PCweights);
-            PortfolioWeight = {Symbols Weights};
-        end       
-    end
-    
+
 end
