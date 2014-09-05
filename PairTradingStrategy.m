@@ -16,23 +16,14 @@ classdef PairTradingStrategy
      
     %/ strategy constructor and strategies
     methods
-        %/ obj constructor
+        %/ constructor
         function obj = PairTradingStrategy(DataObj,LimitLevel,StopLossLevel)
                 obj.Data = DataObj;
                 obj.LimitLevel = LimitLevel;
                 obj.StopLossLevel = StopLossLevel;
         end
         
-        %/ trading strategy **M1** 
-        %/ version v1
-        %/ This trading strategy uses linear regression model to create a
-        %/ stationary residuals.
-        %/ Step1: regress return of Y with return of X and find its residuals 
-        %/ Step2: add up residuals. If regression is appropriate then the
-        %/        sum of the residuals should be stationary
-        %/ Step3: use ADF test to test sum of residual's stationarity
-        %/ Step4: if stationary then generate trading signal based on
-        %/        position of residual(static threshold) 
+        %/ trading strategy **M1**
         function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
                   = M1(obj, MarketData, CurrentPortfolio)
         % ****************************************************************
@@ -140,34 +131,6 @@ classdef PairTradingStrategy
                  PortfolioYweight = 0;                    
               end
               PortfolioRetWeight = obj.PortfolioRetWeight;
-        end
-        
-        
-        
-        %/ trading strategy **M2** 
-        %/ version v1
-        %/ Description:
-        function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
-                 = M2(obj, MarketData, CurrentPortfolio)
-            
-             
-                 
-                 %/ Load Trainning Data
-                 Y = obj.Data.YMidPrice;
-                 X = obj.Data.XMidPrice;
-             
-                 %/ perform Engle-Granger two step test
-                 
-                 %/ Engle Granger test code here:
-                 
-                 %/ check EG test result and generate trading signal
-                 %/ accordingly
-                 if Stationarity == 1
-                    
-                 
-                 
-                 end 
-             
         end
     end
     
