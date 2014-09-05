@@ -24,6 +24,7 @@ classdef PairTradingStrategy
         end
         
         %/ trading strategy **M1**
+        %/ V1
         function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
                   = M1(obj, MarketData, CurrentPortfolio)
         % ****************************************************************
@@ -60,11 +61,11 @@ classdef PairTradingStrategy
                  StdResIndex = (ResIndex - mean(ResIndex))/std(ResIndex);
               
                  %/ calculate portfolio weight 
-                 obj.PortfolioRetWeight = (pccoef * RegSt.beta(2:end,1));
-                 obj.PortfolioActWeight = (pccoef * RegSt.beta(2:end,1)) .* transpose(YCurrentPrice./XCurrentPrice);
+                 obj.PortfolioRetWeight = (pccoef * RegSt.beta(2:end,1))';
+                 obj.PortfolioActWeight = ((pccoef * RegSt.beta(2:end,1)) .* transpose(YCurrentPrice./XCurrentPrice))';
                  
-                 Mean = mean(ResIndex);
-                 Std = std(ResIndex);
+                 Mean = mean(StdResIndex);
+                 Std = std(StdResIndex);
                  
                  %/ check stationarity 
                  stationarity = adftest(StdResIndex,'model','AR','lags',0);
@@ -88,21 +89,27 @@ classdef PairTradingStrategy
                   XPreviousPrice = transpose(obj.Data.XMidPrice(end,:));
                   Yret = (YCurrentPrice - YPreviousPrice)./YPreviousPrice;
                   %/ Xret ~ 1 X N
-                  Xret = (XCurrentPrice - XPreviousPrice)./XPreviousPrice;
+                  Xret = (XCurrentPrice - XPreviousPrice')./XPreviousPrice';
                   %/ new portfolio index
-                  NewPortfolioIndex = Yret - Xret*obj.PortfolioRetWeight;
+                  NewPortfolioIndex = Yret - Xret*obj.PortfolioRetWeight';
                   %/ add to previous ResIndex to find current resindex
                   NewPortfolioIndex = ResIndex(end,:) + NewPortfolioIndex;
                   %/ generating trading signal
-                  StdNewResIndex = (NewPortfolioIndex - Mean)/Std;         
+                  StdNewResIndex = (NewPortfolioIndex - mean(ResIndex))/std(ResIndex);
+                  
                   %/ buy or sell order :
                   %/ Signal = 
                   %/ 1: Buy 
                   %/ 2: Sell
                   %/ 3: Do nothing
-                  if StdNewResIndex > mean(ResIndex) + 2 * std(ResIndex)  && CurrentPortfolio.Direction(1,1) == 0
+                  
+                  if strcmp(datestr(MarketData.TimeStamp),'19-Feb-2008')
+                     xxx = 1;
+                  end
+                  
+                  if StdNewResIndex > 0  && CurrentPortfolio.Direction(1,1) == 0
                     obj.Signal = -1;  
-                  elseif StdNewResIndex <  mean(ResIndex) - 2 * std(ResIndex) && CurrentPortfolio.Direction(1,1) == 0
+                  elseif StdNewResIndex <  0  && CurrentPortfolio.Direction(1,1) == 0
                     obj.Signal = 1; 
                   elseif StdNewResIndex < 0 && CurrentPortfolio.Direction(1,1) == -1   
                     obj.Signal = 1;  
@@ -116,8 +123,7 @@ classdef PairTradingStrategy
               end
               
               
-              Mean = mean(ResIndex);
-              Std = std(ResIndex);
+         
               M1Signal = obj.Signal;
               
               if obj.Signal == 1
@@ -132,8 +138,22 @@ classdef PairTradingStrategy
               end
               PortfolioRetWeight = obj.PortfolioRetWeight;
         end
+        
+        
+        %/ trading strategy **M2**
+        %/ V1
+        %/ Description
+        function [M1Signal, PortfolioYweight,PortfolioXWeight, PortfolioRetWeight, Mean, Std,ResIndex]...
+                  = M2(obj, MarketData, CurrentPortfolio)
+              
+                  
+              
+        end
+        
     end
     
+    
+ 
     %/ private methods(only used within the object)
     methods (Access = private)
         %/ calculate portfolio weight give pc weight of pc factors and pc

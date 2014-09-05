@@ -150,10 +150,11 @@ classdef Portfolio
         %/ Calculate portfolio PNL
         function obj = CalculatePNL(obj, MarketData)
            %/ Update current portfolio's MTM
-            for i = 1:size(obj.Symbols,2)  
+            if size(obj.Symbols,1) ~= 0
+              for i = 1:size(obj.Symbols,2)  
                 obj.MTM(1,i) = MarketData.MidPrice(find(strcmp(obj.Symbols(1,i),MarketData.Symbols),1))*obj.Quantity(1,i);
+              end
             end
-           
             %/ NAV Calculation
             if isempty(obj.MTM)
                obj.NAV = obj.Cash;
