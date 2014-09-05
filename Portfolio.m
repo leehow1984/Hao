@@ -86,7 +86,6 @@ classdef Portfolio
                        if obj.Quantity(1,Index) == - Quantity(1,i)  %/ close position
                           obj.Cost(1,Index) = 0;
                           obj.MTM(1,i)  = 0;
-                          
                        elseif obj.Quantity(1,Index)> 0 || obj.Quantity(1,Index) < 0  %/ add position
                           obj.Cost(1,Index) = obj.Cost(1,Index)+ sum(Cost); 
                        else %/ reduce position
