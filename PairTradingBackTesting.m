@@ -22,7 +22,7 @@ for i = lookback+2:size(Data,1)
         %/ construct strategy obj
         Strategy = PairTradingStrategy(TrainingData,0,3);
         %/ use strategy to generate trading signal 
-        [Signal,YWeight,XWeight,PortfolioRetWeight, Mean, Std,ResIndex] = Strategy.M2(NewMarketData, portfolio);
+        [Signal,YWeight,XWeight,PortfolioRetWeight, Mean, Std,ResIndex] = Strategy.M1(NewMarketData, portfolio);
     %4. Check Signal & place orders accordingly
         M1Data.PortfolioRetWeight = PortfolioRetWeight;
         M1Data.Mean = Mean;
@@ -45,9 +45,12 @@ for i = lookback+2:size(Data,1)
 
            %/ create order object(execute the order)
            PairTradingOrder = Order(Symbol,OrderType,Quantity,Direction, OrderPrice, NewMarketData);
-           %/ calculate cost of positions
-           Cost = PairTradingOrder.ExecuteSetteledPrice .* PairTradingOrder.Quantity;
            %/ add position to current portfolio 
+           
+           Cost = PairTradingOrder.ExecuteSetteledPrice .* PairTradingOrder.Quantity;
+           
+           
+       
            portfolio = portfolio.AddToPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
                        Cost,NewMarketData,PairTradingOrder.Direction,M1Data);
     
