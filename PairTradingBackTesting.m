@@ -1,11 +1,15 @@
 
 %% Trading Set Up: trading parameter and trading portfolio  
-lookback = 250;
+lookback = 200;
 lookfwd = 20;
 portfolio = Portfolio(100);
 portfolio.Direction = 0;
 tradinglog = cell(0,1);
 Strategy = PairTradingStrategy(0,3,20);
+Ycol = 2;
+Xcol = 4:6;
+
+
 
 
 %% main testing loop
@@ -14,42 +18,50 @@ for i = lookback+2:size(Data,1)
     NewMarketData = MarketData(datenum(Data(i,1)),transpose(Data(1,2:end)), transpose(cell2mat(Data(i,2:end))),transpose(cell2mat(Data(i,2:end))));
     %2. Generate historical training data     
     TrainingData = PairTradingData(datenum(Data(i-lookback:i-1)),...
-                                   cell2mat((Data(i-lookback:i-1,2))),... %y bid
-                                   cell2mat((Data(i-lookback:i-1,2))),... %y ask
-                                   cell2mat((Data(i-lookback:i-1,5:6))),... %x bid
-                                   cell2mat((Data(i-lookback:i-1,5:6))),... %x ask
-                                   Data(1,2),... %y symbol
-                                   Data(1,5:6),... %x symbol
+                                   cell2mat((Data(i-lookback:i-1,Ycol))),... %y bid
+                                   cell2mat((Data(i-lookback:i-1,Ycol))),... %y ask
+                                   cell2mat((Data(i-lookback:i-1,Xcol))),... %x bid
+                                   cell2mat((Data(i-lookback:i-1,Xcol))),... %x ask
+                                   Data(1,Ycol),... %y symbol
+                                   Data(1,Xcol),... %x symbol
                                    'Historical');
     %3. Feed data into Trading Strategy to generate trading signal 
         %/ feed new market data into strategy obj
         Strategy = Strategy.UpdateMarketData(TrainingData);
         %/ use strategy to generate trading signal 
-        [Signal,YWeight,XWeight,PortfolioRetWeight, Mean, Std,ResIndex] = Strategy.M1(NewMarketData, portfolio);
+        Strategy = Strategy.M1(NewMarketData, portfolio);
+        
+        
+        %/ ****************** Display Code *************************/%
+        display(strcat('Timer = ',num2str(Strategy.M1Analytics.Timer)));
+        %/ ****************** Display Code *************************/%
+        
     %4. Check Signal & place orders accordingly
-        M1Data.PortfolioRetWeight = PortfolioRetWeight;
-        M1Data.Mean = Mean;
-        M1Data.Std = Std;
-        M1Data.ResIndex = ResIndex;
-         if Signal ~= 0
+        M1Data.PortfolioRetWeight = Strategy.M1Analytics.PortfolioRetWeight;
+        M1Data.Mean = Strategy.M1Analytics.Mean;
+        M1Data.Std = Strategy.M1Analytics.Std;
+        M1Data.ResIndex = Strategy.M1Analytics.ResIndex;
+        M1Data.Intercept = Strategy.M1Analytics.Intercept;
+        if Strategy.M1Analytics.M1Signal ~= 0
            % build paramters 
-           Symbol =  transpose([Data(1,2); transpose(Data(1,5:6))]);
+           Symbol =  transpose([Data(1,Ycol); transpose(Data(1,Xcol))]);
            OrderType = cell(1,size(Symbol,2)); 
            OrderType(1,:) = {'MarketOrder'};
-           Quantity = [YWeight XWeight];
-           YSignal = Signal;
-           XSignal = zeros(1,size(XWeight,2));
-           XSignal(1,:) = -Signal;
+           Quantity = [Strategy.M1Analytics.PortfolioYweight Strategy.M1Analytics.PortfolioXWeight];
+           YSignal = Strategy.M1Analytics.M1Signal;
+           XSignal = zeros(1,size(Strategy.M1Analytics.PortfolioXWeight,2));
+           XSignal(1,:) = -Strategy.M1Analytics.M1Signal;
            Direction = [YSignal XSignal] ;
-           [YCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,2));
-           [XCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,5:6));
+           [YCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,Ycol));
+           [XCurrentPrice,~,~] = NewMarketData.FindCurrentPrice(Data(1,Xcol));
            OrderPrice = [YCurrentPrice XCurrentPrice];
 
            %/ create order object(execute the order)
            PairTradingOrder = Order(Symbol,OrderType,Quantity,Direction, OrderPrice, NewMarketData);
            %/ add position to current portfolio 
            
-           %/ display order on screen
+           
+           %/ ****************** Display Code *************************/%
            for j = 1:size(Symbol,2)
                if Direction(1,j) == 1 
                   display(strcat(datestr(NewMarketData.TimeStamp),' Buy {', num2str(Quantity(1,j)),'} {',Symbol(1,j), '} @ ', num2str(OrderPrice(1,j))));
@@ -59,6 +71,7 @@ for i = lookback+2:size(Data,1)
                   tradinglog(end + 1,1) = (strcat(datestr(NewMarketData.TimeStamp),' Sell {', num2str(Quantity(1,j)),'} {',Symbol(1,j), '} @ ', num2str(OrderPrice(1,j))));
                end 
            end
+           %/ ****************** Display Code *************************/%
            
            %/ calculate cost
            Cost = PairTradingOrder.ExecuteSetteledPrice .* PairTradingOrder.Quantity;
