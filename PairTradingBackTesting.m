@@ -5,9 +5,9 @@ lookfwd = 20;
 portfolio = Portfolio(100);
 portfolio.Direction = 0;
 tradinglog = cell(0,1);
-Strategy = PairTradingStrategy(0,3,20);
+Strategy = PairTradingStrategy(0,3,50);
 Ycol = 2;
-Xcol = 4:6;
+Xcol = 5:7;
 
 
 
@@ -77,11 +77,13 @@ for i = lookback+2:size(Data,1)
            Cost = PairTradingOrder.ExecuteSetteledPrice .* PairTradingOrder.Quantity;
            %/ add to portfolio
            portfolio = portfolio.AddToPortfolio(PairTradingOrder.Symbol,PairTradingOrder.Quantity,...
-                       Cost,NewMarketData,PairTradingOrder.Direction,M1Data);
+                       Cost,NewMarketData,PairTradingOrder.Direction,PairTradingOrder.ExecuteTransactionCost,M1Data);
         else
            %/ if no new signal then just calculate p&l 
            portfolio = portfolio.CalculatePNL(NewMarketData);
         end
-          
+        
+        plot(portfolio.NAVHistory(2:end));
+        pause(0.01)
 end
 x = 1;

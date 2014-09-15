@@ -47,7 +47,7 @@ classdef Portfolio
         end
         
         %/ Add security to the portfolio object
-        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction,StrategyData)
+        function obj = AddToPortfolio(obj,Symbols,Quantity,Cost,MarketData,Direction,TransactionCost,StrategyData)
            %/ input check
            if size(Symbols,1) > 1 || ~iscell(Symbols)
               error('Symbols must be a 1 x n cell');
@@ -86,30 +86,27 @@ classdef Portfolio
                        if obj.Quantity(1,Index) == - Quantity(1,i)  %/ close position
                           obj.Cost(1,Index) = 0;
                           obj.MTM(1,i)  = 0;
-                          
                        elseif obj.Quantity(1,Index)> 0 || obj.Quantity(1,Index) < 0  %/ add position
                           obj.Cost(1,Index) = obj.Cost(1,Index)+ sum(Cost); 
                        else %/ reduce position
                           obj.Cost(1,Index) = obj.Cost(1,Index) + sum(Cost); 
                        end 
                        
-                       obj.Cash = obj.Cash - Cost(1, i);
+                       obj.Cash = obj.Cash - Cost(1, i) - TransactionCost(1,i);
                    else % new security
                        obj.Symbols(1, i) = Symbols(1,i);
                        obj.Cost(1, i) = Cost(1,i);
                        obj.MTM(1,i) =  Cost(1,i);
-                       obj.Cash = obj.Cash - Cost(1, i);
+                       obj.Cash = obj.Cash - Cost(1, i)- TransactionCost(1,i);
                    end
                 else %/ if the portfolio is empty
                     obj.Symbols(1, i) = Symbols(1, i);
                     obj.Cost(1, i) = Cost(1, i);
                     obj.MTM(1,i) =  Cost(1,i);
-                    obj.Cash = obj.Cash - Cost(1, i);
+                    obj.Cash = obj.Cash - Cost(1, i)- TransactionCost(1,i);
                 end
             end
            
-            
-            
            %/ add quantity 
            if isempty(obj.Quantity)
               obj.Quantity =  Quantity  ;
@@ -117,11 +114,9 @@ classdef Portfolio
               obj.Quantity =  obj.Quantity  + Quantity ;  
            end    
            
-           
            %/ Trade Direction
            obj.Direction = obj.Direction + Direction; 
            
-            
            %/ NAV Calculation
            if isempty(obj.MTM)
                obj.NAV = obj.Cash;
@@ -130,7 +125,6 @@ classdef Portfolio
            end
             %/ P&L Calculation
             
-           
             obj.NAVHistory(1,end+1) = obj.NAV;
             %/ Weight Calculation
             obj.Weights = obj.MTM / obj.NAV;

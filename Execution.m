@@ -27,11 +27,11 @@ classdef Execution
                if Order.Direction(1,i) == 1 %/ if it is a buy order
                   obj.SettledPrice(1,i) = MarketData.AskPrice(Index(1,i),1);
                   obj.Signal(1,i) = 1; 
-                  obj.TransactionCost(1,i) = (obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate; 
+                  obj.TransactionCost(1,i) = abs((obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate); 
                elseif Order.Direction(1,i) == -1 %/ if it is a sell order
                   obj.SettledPrice(1,i) = MarketData.BidPrice(Index(1,i),1);
                   obj.Signal(1,i) = 1; 
-                  obj.TransactionCost(1,i) = (obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate;  
+                  obj.TransactionCost(1,i) = abs((obj.SettledPrice(1,i) * Order.Quantity(1,i))*obj.TCostRate);  
                end
             end
         end

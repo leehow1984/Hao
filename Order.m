@@ -54,7 +54,7 @@ classdef Order
             %TCostRate = 0;
             %Slippage = 0;
             %[obj.ExecuteSignal,obj.ExecuteSetteledPrice,obj.ExecuteTransactionCost]...
-            Executor = Execution(0,0,MarketData, obj);
+            Executor = Execution(0.002,0,MarketData, obj);
             
             
             obj.ExecuteSignal = Executor.Signal;

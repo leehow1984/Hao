@@ -95,7 +95,7 @@ classdef PairTradingStrategy
                  obj.M1Analytics.Std = std(StdResIndex);
                  
                  %/ check stationarity 
-                 [stationarity, Pval] = adftest(StdResIndex,'model','AR','lags',0);
+                 [stationarity, Pval] = adftest(StdResIndex,'model','AR','lags',0,'alpha',0.05);
                  
                  %/ ****************** Display Code *************************/%
                  display(strcat(datestr(MarketData.TimeStamp),' ADF Test Stationary = ', num2str(stationarity), '  PVAL = ', num2str(Pval)));
@@ -153,10 +153,10 @@ classdef PairTradingStrategy
                      end 
                      
                   %/ generate entry signal    
-                  elseif StdNewResIndex > 1.5  && CurrentPortfolio.Direction(1,1) == 0
+                  elseif StdNewResIndex > 2 && StdNewResIndex < 5  && CurrentPortfolio.Direction(1,1) == 0
                     obj.Signal = -1; 
                     obj.M1Analytics.Timer =1;
-                  elseif StdNewResIndex <  - 1.5  && CurrentPortfolio.Direction(1,1) == 0
+                  elseif StdNewResIndex <  - 2 && StdNewResIndex > -5 && CurrentPortfolio.Direction(1,1) == 0
                     obj.Signal = 1; 
                     obj.M1Analytics.Timer =1;
                     
@@ -170,10 +170,10 @@ classdef PairTradingStrategy
                     
                     
                   %/ generate stop loss exit signal when position exist  
-                  elseif StdNewResIndex > 3 && CurrentPortfolio.Direction(1,1) == -1   
+                  elseif StdNewResIndex > 4 && CurrentPortfolio.Direction(1,1) == -1   
                     obj.Signal = 1;  
                     obj.M1Analytics.Timer =0;
-                  elseif StdNewResIndex < - 3 && CurrentPortfolio.Direction(1,1) == 1      
+                  elseif StdNewResIndex < - 4 && CurrentPortfolio.Direction(1,1) == 1      
                     obj.Signal = -1;
                     obj.M1Analytics.Timer =0;                  
                   
